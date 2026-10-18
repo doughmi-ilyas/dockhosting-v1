@@ -1,5 +1,10 @@
 <?php
 session_start();
+if (!isset($_SESSION["id"])) {
+    http_response_code(401);
+    echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+    exit;
+}
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     require_once "../php/connect.php";
@@ -71,6 +76,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             echo json_encode(['success' => false, 'error' => 'Failed to clone repository', 'details' => implode("\n", $output)]);
             exit;
         }
+
+        // Don't leave the OAuth token in .git/config, where the user's site could serve it.
+        exec("git -C {$safe_path} remote set-url origin " . escapeshellarg("https://github.com/{$repo_full_name}.git"));
 
         $cloned_items = array_diff(scandir($path), array('.', '..', '.git'));
         if (count($cloned_items) === 1) {
@@ -174,7 +182,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
 
         
-        $cmd .= " -e DB_HOST=dock-hosting-db -e DB_USER=root -e DB_PASSWORD=" . escapeshellarg(getenv('DB_PASSWORD')); 
+        $cmd .= " -e DB_HOST=dock-hosting-db";
         
         $cmd .= " {$image} {$command}";
         

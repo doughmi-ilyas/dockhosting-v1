@@ -16,6 +16,13 @@ $dotenv->load();
 
 $db = new db(); 
 
+$expected_state = $_SESSION["gh_state"] ?? "";
+unset($_SESSION["gh_state"]);
+if ($expected_state === "" || !hash_equals($expected_state, (string)($_GET["state"] ?? ""))) {
+    header("Location: ../../pages/settings.php?msg=GitHub connection expired, please try again");
+    exit;
+}
+
 if(isset($_GET["code"])){
     $code = $_GET["code"];
 
@@ -30,7 +37,6 @@ if(isset($_GET["code"])){
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
     curl_setopt($ch, CURLOPT_HTTPHEADER, ['Accept: application/json']);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); 
 
     $response = curl_exec($ch);
     curl_close($ch);
@@ -48,8 +54,7 @@ if(isset($_GET["code"])){
         exit;
     }
     else{
-        echo "Error: GitHub did not return a token. Response: <br>";
-        print_r($data);
+        echo "Error: GitHub did not return a token.";
     }
 }
 else{

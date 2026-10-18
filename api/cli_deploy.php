@@ -6,6 +6,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 use Dotenv\Dotenv;
 require_once("../Classes/Project.php");
 require_once("../php/connect.php");
+require_once("../includes/cli_token.php");
 
 $dotenv = Dotenv::createImmutable(__DIR__ . "/../");
 $dotenv->load();
@@ -54,9 +55,7 @@ if ($zipScanner->open($_FILES['project_zip']['tmp_name']) === TRUE) {
     $zipScanner->close();
 }
 
-$decoded = base64_decode($token);
-$parts = explode('_SECRET_', $decoded);
-$userId = $parts[0] ?? null;
+$userId = cli_token_user($token);
 
 if (!$userId) {
     http_response_code(401);
@@ -100,6 +99,13 @@ if ($incomingProjectId) {
     }
 
     if (!$targetProject) {
+        // Same rules as the web flow: the name becomes a folder, container and subdomain.
+        $incomingProjectName = strtolower(substr(preg_replace('/[^a-zA-Z0-9-]/', '', str_replace(' ', '-', $incomingProjectName)), 0, 20));
+        if ($incomingProjectName === '') {
+            http_response_code(400);
+            echo json_encode(['message' => "Project name must contain letters or numbers."]);
+            exit;
+        }
         $newSuffix = substr(bin2hex(random_bytes(3)), 0, 6);
         $finalName = $incomingProjectName . '-' . $newSuffix;
         
@@ -200,7 +206,7 @@ if ($incomingProjectId) {
             $safe_internal_port = escapeshellarg($internal_port);
             
             $dockerCmd = "docker run -d -p {$safe_port}:{$internal_port} --name {$safe_name} --network proxy_network -e VIRTUAL_HOST={$safe_subdomain} -e LETSENCRYPT_HOST={$safe_subdomain} -e VIRTUAL_PORT={$internal_port} -e PORT={$internal_port} -v {$safe_volume}";
-            $dockerCmd .= " -e DB_HOST=dock-hosting-db -e DB_USER=root -e DB_PASSWORD=" . escapeshellarg(getenv('DB_PASSWORD'));
+            $dockerCmd .= " -e DB_HOST=dock-hosting-db";
             $dockerCmd .= " {$image} {$command}";
             
             shell_exec($dockerCmd);

@@ -14,17 +14,16 @@ if (empty($container_name) || !isset($_FILES['file'])) {
     exit;
 }
 
-$base_path = dirname(__DIR__, 2);
-$target_dir = $base_path . "/users/Projects/" . $_SESSION["id"] . "/" . $container_name . "/";
+require_once "../../php/connect.php";
+require_once "../../Classes/Project.php";
 
-if ($path_rel != "") {
-    $target_dir .= $path_rel . "/";
-}
+$target_dir = (new Project)->resolvePath($container_name, $path_rel);
 
-if (strpos(realpath($target_dir), realpath($base_path . "/users/Projects/" . $_SESSION["id"])) !== 0) {
-    header("location: ../../pages/file-manager.php?container=" . $container_name . "&msg=Invalid path&type=error");
+if ($target_dir === false || !is_dir($target_dir)) {
+    header("location: ../../pages/file-manager.php?container=" . urlencode($container_name) . "&msg=Invalid path&type=error");
     exit;
 }
+$target_dir .= "/";
 
 $files = $_FILES['file'];
 $upload_count = 0;

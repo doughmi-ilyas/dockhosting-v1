@@ -13,15 +13,15 @@ $container_name = $_GET["container"] ?? null;
 if (!$container_name) { header("location: dashboard.php"); exit; }
 
 
-$stats = $project->getContainerStats($container_name);
-$logs = $project->getContainerLogs($container_name);
-
 $pdo = (new db())->connect();
 $stmt = $pdo->prepare("SELECT * FROM Project WHERE container_name = :c AND user_id = :u");
 $stmt->execute([':c' => $container_name, ':u' => $_SESSION['id']]);
 $projectInfo = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$projectInfo) { header("location: dashboard.php"); exit; }
+
+$stats = $project->getContainerStats($container_name);
+$logs = $project->getContainerLogs($container_name);
 
 $type = $projectInfo['type'] ?? 'php';
 $userDB = $dbManager->getDatabase($_SESSION["id"], $container_name);

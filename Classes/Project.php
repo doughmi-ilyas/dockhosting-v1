@@ -69,7 +69,8 @@ Class Project extends db{
     }
 
     public function stopContainer($container_name){
-        shell_exec("docker stop ".$container_name);
+        if (!$this->ownsContainer($container_name)) return false;
+        shell_exec("docker stop " . escapeshellarg($container_name));
         $stop_query = "UPDATE Project SET status = 'stopped' WHERE user_id = :user_id AND container_name = :container_name";
 
         $stmt = $this->connect()->prepare($stop_query);
@@ -86,7 +87,8 @@ Class Project extends db{
     }
 
     public function startContainer($container_name){
-         shell_exec("docker start ".$container_name);
+        if (!$this->ownsContainer($container_name)) return false;
+        shell_exec("docker start " . escapeshellarg($container_name));
         $start_query = "UPDATE Project SET status = 'running' WHERE user_id = :user_id AND container_name = :container_name";
 
         $stmt = $this->connect()->prepare($start_query);
@@ -103,7 +105,8 @@ Class Project extends db{
     }
     
     public function restartContainer($container_name){
-         shell_exec("docker restart ".$container_name);
+        if (!$this->ownsContainer($container_name)) return false;
+        shell_exec("docker restart " . escapeshellarg($container_name));
         $start_query = "UPDATE Project SET status = 'running' WHERE user_id = :user_id AND container_name = :container_name";
 
         $stmt = $this->connect()->prepare($start_query);
@@ -118,14 +121,46 @@ Class Project extends db{
             return false;
         }
     }
+    public function ownsContainer($container_name){
+        if (!isset($_SESSION["id"]) || !preg_match('/^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/', (string)$container_name)) {
+            return false;
+        }
+        $stmt = $this->connect()->prepare("SELECT 1 FROM Project WHERE user_id = :user_id AND container_name = :container_name");
+        $stmt->execute([":user_id" => $_SESSION["id"], ":container_name" => $container_name]);
+        return (bool)$stmt->fetchColumn();
+    }
+
+    // Resolves $rel inside the current user's project folder; false if not owned or it escapes the folder.
+    // $must_exist = false resolves the parent instead, for paths about to be created.
+    public function resolvePath($container_name, $rel = "", $must_exist = true){
+        if (!$this->ownsContainer($container_name)) {
+            return false;
+        }
+        $root = realpath(dirname(__DIR__) . "/users/Projects/" . $_SESSION["id"] . "/" . $container_name);
+        if ($root === false) {
+            return false;
+        }
+        $path = $root . "/" . $rel;
+        $name = basename($path);
+        if (!$must_exist && in_array($name, ["", ".", ".."], true)) {
+            return false;
+        }
+        $real = realpath($must_exist ? $path : dirname($path));
+        if ($real === false || ($real !== $root && strpos($real, $root . DIRECTORY_SEPARATOR) !== 0)) {
+            return false;
+        }
+        return $must_exist ? $real : $real . DIRECTORY_SEPARATOR . $name;
+    }
+
     public function deleteProject($container_name,$file_dir){
+        if (!$this->ownsContainer($container_name)) return false;
         $this->removeContainer($container_name);
         $this->removeDir($file_dir);
         $this->removeDatabase($container_name);
     }
 
     private function removeContainer($container){
-        shell_exec("docker rm -f ".$container);
+        shell_exec("docker rm -f " . escapeshellarg($container));
     }
     private function removeDir($file_dir){
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
@@ -149,26 +184,11 @@ Class Project extends db{
         }
     }
     public function getProjectFiles($container_name,$sub_path = ""){
-        $base_path = dirname(__DIR__) . "/users/Projects/";
-        $path = $base_path . $_SESSION["id"] . "/" . $container_name . "/" . $sub_path ."/";
-
-        
-
-        
-        
-        
-        
-        
-        
-        
-        
-        
-
-        
-
-        if (!is_dir($path)) {
+        $path = $this->resolvePath($container_name, $sub_path);
+        if ($path === false || !is_dir($path)) {
             return [];
         }
+        $path .= "/";
 
         $files = scandir($path);
         $result = [];
@@ -194,10 +214,9 @@ Class Project extends db{
     }
 
     public function getFileContent($container_name,$file_name){
-        $base_path = dirname(__DIR__) . "/users/Projects/";
-        $path = $base_path . $_SESSION["id"] . "/" . $container_name . "/" . $file_name ;
+        $path = $this->resolvePath($container_name, $file_name);
 
-        if(is_file($path)){
+        if($path !== false && is_file($path)){
             return file_get_contents($path);
         }
         else{
@@ -206,9 +225,8 @@ Class Project extends db{
     }
 
     public function saveFileChanges($container_name,$file_name,$new_content){
-        $base_path = dirname(__DIR__) . "/users/Projects/";
-        $path = $base_path . $_SESSION["id"] . "/" . $container_name . "/" . $file_name ;
-        if(is_file($path)){
+        $path = $this->resolvePath($container_name, $file_name);
+        if($path !== false && is_file($path)){
             file_put_contents($path,$new_content);
         }
         else{
@@ -217,13 +235,8 @@ Class Project extends db{
     }
 
     public function deleteItem($container_name, $file_path) {
-        $base_path = dirname(__DIR__) . "/users/Projects/";
-        $path = $base_path . $_SESSION["id"] . "/" . $container_name . "/" . $file_path;
-        
-        $real_base = realpath($base_path . $_SESSION["id"] . "/" . $container_name);
-        $real_target = realpath($path);
-        
-        if ($real_target === false || strpos($real_target, $real_base) !== 0) {
+        $path = $this->resolvePath($container_name, $file_path);
+        if ($path === false || $path === $this->resolvePath($container_name)) {
             return false;
         }
 
@@ -249,7 +262,7 @@ Class Project extends db{
     }
 
     public function adminStopContainer($container_name) {
-        shell_exec("docker stop ".$container_name);
+        shell_exec("docker stop " . escapeshellarg($container_name));
         $query = "UPDATE Project SET status = 'stopped' WHERE container_name = :container_name";
         $stmt = $this->connect()->prepare($query);
         $stmt->bindParam(":container_name", $container_name);
@@ -257,7 +270,7 @@ Class Project extends db{
     }
 
     public function adminStartContainer($container_name) {
-        shell_exec("docker start ".$container_name);
+        shell_exec("docker start " . escapeshellarg($container_name));
         $query = "UPDATE Project SET status = 'running' WHERE container_name = :container_name";
         $stmt = $this->connect()->prepare($query);
         $stmt->bindParam(":container_name", $container_name);
@@ -265,10 +278,17 @@ Class Project extends db{
     }
 
     public function adminDeleteProject($container_name, $user_id) {
+        // Trust the DB, not the posted user_id/name, for the folder we rm -rf.
+        $stmt = $this->connect()->prepare("SELECT user_id FROM Project WHERE container_name = :container_name");
+        $stmt->execute([":container_name" => $container_name]);
+        $owner = $stmt->fetchColumn();
+        if ($owner === false) {
+            return false;
+        }
         $this->removeContainer($container_name);
-        
+
         $base_path = dirname(__DIR__) . "/users/Projects/";
-        $path = $base_path . $user_id . "/" . $container_name;
+        $path = $base_path . (int)$owner . "/" . $container_name;
         $this->removeDir($path);
 
         $query = "DELETE FROM Project WHERE container_name = :container_name";

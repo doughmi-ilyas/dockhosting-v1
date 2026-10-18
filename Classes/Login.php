@@ -3,7 +3,7 @@
     session_set_cookie_params([
         'lifetime' => 0,
         'path' => '/',
-        'domain' => '.dockhosting.dev',
+        // Host-only: a ".dockhosting.dev" cookie would be sent to every user-hosted subdomain.
         'secure' => true,
         'httponly' => true,
         'samesite' => 'Lax'
@@ -29,6 +29,7 @@
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if($user && password_verify($this->password,$user["password"])){
+                session_regenerate_id(true);
                 $_SESSION["id"] = $user["id"];
                 $_SESSION["username"] = $user["username"];
                 $_SESSION["email"] = $user["email"];

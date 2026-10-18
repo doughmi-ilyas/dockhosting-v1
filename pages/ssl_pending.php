@@ -65,7 +65,7 @@
     </div>
 
     <script>
-        const targetUrl = "<?= htmlspecialchars($_GET['url'] ?? '#') ?>";
+        const targetUrl = <?= json_encode(preg_match('#^https?://[a-zA-Z0-9._-]+\.dockhosting\.dev/?$#', $_GET['url'] ?? '') ? $_GET['url'] : 'dashboard.php') ?>;
         const progressBar = document.getElementById('progress');
         const statusText = document.getElementById('status-text');
         

@@ -19,6 +19,14 @@ $gh = new GitHubManager();
 $token = $gh->getAccessToken($_SESSION['id']);
 $is_connected = !empty($token);
 
+$_SESSION['gh_state'] = $_SESSION['gh_state'] ?? bin2hex(random_bytes(16));
+$github_authorize_url = "https://github.com/login/oauth/authorize?" . http_build_query([
+    'client_id' => $clientid_github,
+    'redirect_uri' => $redirecturl_github,
+    'scope' => 'repo',
+    'state' => $_SESSION['gh_state'],
+]);
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -176,7 +184,7 @@ $is_connected = !empty($token);
                                         </form>
                                     </div>
                                 <?php else: ?>
-                                    <a href="https://github.com/login/oauth/authorize?client_id=<?= $clientid_github ?>&redirect_uri=<?= $redirecturl_github ?>&scope=repo" 
+                                    <a href="<?= htmlspecialchars($github_authorize_url) ?>"
                                        class="px-6 py-3 bg-white text-black font-bold rounded-xl hover:bg-gray-200 transition-all transform hover:scale-105 shadow-lg flex items-center gap-3">
                                         <i class="fab fa-github text-lg"></i>
                                         <span>Connect GitHub</span>

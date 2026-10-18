@@ -77,12 +77,40 @@ session_start();
 
         <div class="space-y-12 relative border-l border-white/10 ml-3 pl-10">
             
+            <!-- v1.4.1 -->
+            <div class="relative">
+                <span class="absolute -left-[45px] top-1 w-4 h-4 rounded-full bg-brand border-2 border-black ring-4 ring-brand/20"></span>
+                <div class="flex items-baseline justify-between mb-4">
+                    <h2 class="text-2xl font-bold">Security Update <span class="text-brand text-sm font-mono ml-2">v1.4.1</span></h2>
+                    <span class="text-xs font-mono text-gray-500">2026-10-18</span>
+                </div>
+
+                <div class="bg-[#0a0a0a] border border-white/10 rounded-2xl p-6">
+                    <ul class="space-y-4 text-gray-300">
+                        <li class="flex gap-3">
+                            <i class="fas fa-shield-alt text-brand mt-1"></i>
+                            <div>
+                                <strong class="text-white block">Security Hardening</strong>
+                                <span class="text-sm text-gray-400">Fixed multiple vulnerabilities in container management, the file manager, CLI authentication and sessions. Upgrading is strongly recommended.</span>
+                            </div>
+                        </li>
+                        <li class="flex gap-3">
+                            <i class="fas fa-check-circle text-gray-500 mt-1"></i>
+                            <div>
+                                <strong class="text-white block">CLI Re-login Required</strong>
+                                <span class="text-sm text-gray-400">CLI tokens are now signed. Run the CLI login again to get a new token.</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
             <!-- v1.4.0 -->
             <div class="relative">
                 <span class="absolute -left-[45px] top-1 w-4 h-4 rounded-full bg-brand border-2 border-black ring-4 ring-brand/20"></span>
                 <div class="flex items-baseline justify-between mb-4">
                     <h2 class="text-2xl font-bold">The Dock CLI is live! <span class="text-brand text-sm font-mono ml-2">v1.4.0</span></h2>
-                    <span class="text-xs font-mono text-gray-500"><?php echo date('Y-m-d'); ?></span>
+                    <span class="text-xs font-mono text-gray-500">2026-01-11</span>
                 </div>
                 
                 <div class="bg-[#0a0a0a] border border-white/10 rounded-2xl p-6">

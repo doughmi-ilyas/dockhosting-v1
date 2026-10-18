@@ -28,7 +28,8 @@ class db {
             return $pdo;
 
         } catch (PDOException $e) {
-            die("Connexion Failed: " . $e->getMessage());
+            error_log("DB connection failed: " . $e->getMessage());
+            die("Database connection failed.");
         }
     }
 }

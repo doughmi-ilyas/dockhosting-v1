@@ -11,7 +11,8 @@ require_once "../../Classes/DatabaseManager.php";
 
 $container_name = $_POST["container"] ?? '';
 
-if (empty($container_name)) {
+require_once "../../Classes/Project.php";
+if (!(new Project)->ownsContainer($container_name)) {
     header("location: ../../pages/dashboard.php?msg=Invalid Request&type=error");
     exit;
 }

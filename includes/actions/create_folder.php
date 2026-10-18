@@ -6,26 +6,22 @@ if (!isset($_SESSION["id"]) || $_SERVER["REQUEST_METHOD"] != "POST") {
     exit;
 }
 
-$container_name = $_POST["container"];
-$path_rel = $_POST["path"];
-$folder_name = $_POST["name"];
+$container_name = $_POST["container"] ?? "";
+$path_rel = $_POST["path"] ?? "";
+$folder_name = $_POST["name"] ?? "";
 
 if (empty($container_name) || empty($folder_name)) {
     header("location: ../../pages/dashboard.php");
     exit;
 }
 
-$base_path = dirname(__DIR__, 2);
-$target_dir = $base_path . "/users/Projects/" . $_SESSION["id"] . "/" . $container_name . "/";
+require_once "../../php/connect.php";
+require_once "../../Classes/Project.php";
 
-if ($path_rel != "") {
-    $target_dir .= $path_rel . "/";
-}
+$full_path = (new Project)->resolvePath($container_name, $path_rel . "/" . $folder_name, false);
 
-$full_path = $target_dir . $folder_name;
-
-if (strpos(realpath($target_dir), realpath($base_path . "/users/Projects/" . $_SESSION["id"])) !== 0) {
-    header("location: ../../pages/file-manager.php?container=" . $container_name . "&error=invalid_path");
+if ($full_path === false) {
+    header("location: ../../pages/file-manager.php?container=" . urlencode($container_name) . "&error=invalid_path");
     exit;
 }
 

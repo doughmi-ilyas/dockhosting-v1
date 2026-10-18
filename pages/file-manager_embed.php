@@ -157,7 +157,7 @@ $userDB = $dbManager->getDatabase($_SESSION["id"], $container_name);
                             </div>
                             
                             <?php if($fl["name"] !== "error.log"): ?>
-                                <button onclick="event.preventDefault(); event.stopPropagation(); deleteItem('<?= htmlspecialchars($target_path, ENT_QUOTES) ?>')" 
+                                <button onclick="event.preventDefault(); event.stopPropagation(); deleteItem(<?= htmlspecialchars(json_encode($target_path), ENT_QUOTES) ?>)" 
                                         class="w-6 h-6 flex items-center justify-center rounded text-gray-600 hover:text-red-500 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100" title="Delete">
                                     <i class="fas fa-trash-alt text-[10px]"></i>
                                 </button>

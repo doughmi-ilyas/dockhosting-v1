@@ -5,15 +5,17 @@ if (!isset($_SESSION["id"])) {
     exit;
 }
 
-$container_name = $_GET["container"];
-$file_path = $_GET["file"];
+require_once "../../php/connect.php";
+require_once "../../Classes/Project.php";
 
-$base_path = dirname(__DIR__, 2);
-$target_file = $base_path . "/users/Projects/" . $_SESSION["id"] . "/" . $container_name . "/" . $file_path;
+$target_file = (new Project)->resolvePath($_GET["container"] ?? "", $_GET["file"] ?? "");
 
-if (file_exists($target_file)) {
+if ($target_file !== false && is_file($target_file)) {
     $mime = mime_content_type($target_file);
     header("Content-Type: $mime");
+    // User files (SVG/HTML) must not run script on the panel's origin.
+    header("X-Content-Type-Options: nosniff");
+    header("Content-Security-Policy: sandbox");
     readfile($target_file);
 } else {
     echo "File not found";

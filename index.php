@@ -149,7 +149,7 @@
             
             <a href="pages/changelog.php" class="inline-flex items-center gap-3 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md text-gray-300 text-xs font-mono mb-10 animate-[fade-in_1s_ease-out] hover:border-brand/30 hover:bg-white/10 transition-all cursor-pointer group">
                 <span class="w-2 h-2 rounded-full bg-brand animate-pulse"></span>
-                <span class="group-hover:text-white transition-colors">New Update Dropped: <span class="text-brand">v1.4.0</span></span>
+                <span class="group-hover:text-white transition-colors">New Update Dropped: <span class="text-brand">v1.4.1</span></span>
                 <i class="fas fa-arrow-right opacity-0 -ml-2 group-hover:opacity-100 group-hover:ml-0 transition-all text-brand"></i>
             </a>
 

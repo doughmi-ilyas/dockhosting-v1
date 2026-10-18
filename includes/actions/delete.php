@@ -2,9 +2,9 @@
 session_start();
    require_once "../../php/connect.php";
     require_once "../../Classes/Project.php";
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $container = $_POST["container_name"];
-    $project_name = $_POST["container_name"];
+if (isset($_SESSION["id"]) && $_SERVER["REQUEST_METHOD"] == "POST") {
+    $container = $_POST["container_name"] ?? "";
+    $project_name = $container;
     $base_path = dirname(__DIR__, 2);
     $path = $base_path . "/users/Projects/" . $_SESSION["id"] . "/" . $project_name . "/";
 

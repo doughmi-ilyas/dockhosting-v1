@@ -2,9 +2,10 @@
 require_once __DIR__ . '/../Classes/Admin.php';
 
 function checkMaintenance() {
-    if (strpos($_SERVER['REQUEST_URI'], '/admin/') !== false || 
-        strpos($_SERVER['REQUEST_URI'], 'login.php') !== false ||
-        strpos($_SERVER['REQUEST_URI'], 'admin_actions.php') !== false) {
+    $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '';
+    if (strpos($uri, '/admin/') !== false ||
+        strpos($uri, 'login.php') !== false ||
+        strpos($uri, 'admin_actions.php') !== false) {
         return;
     }
 

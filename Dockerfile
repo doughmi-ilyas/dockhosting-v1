@@ -15,6 +15,24 @@ ENV DOCKER_BUILD_CHECK="Build_Attempt_3"
 
 RUN a2enmod rewrite
 
+# Never serve user uploads (they would run as PHP with docker.sock access), secrets, or internals.
+RUN printf '%s\n' \
+    '<DirectoryMatch "^/var/www/html/(users|vendor|sql|cron|\.git)(/|$)">' \
+    '    Require all denied' \
+    '</DirectoryMatch>' \
+    '<FilesMatch "^\.|^composer\.(json|lock)$">' \
+    '    Require all denied' \
+    '</FilesMatch>' \
+    > /etc/apache2/conf-available/dock-security.conf && a2enconf dock-security
+
+RUN printf '%s\n' \
+    'auto_prepend_file=/var/www/html/includes/csrf_guard.php' \
+    'session.use_strict_mode=1' \
+    'session.cookie_httponly=1' \
+    'session.cookie_secure=1' \
+    'session.cookie_samesite=Lax' \
+    > /usr/local/etc/php/conf.d/dock-security.ini
+
 WORKDIR /var/www/html
 
 COPY . /var/www/html/
