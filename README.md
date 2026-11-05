@@ -1,4 +1,11 @@
-# 🐳 Dock-Hosting
+<p align="center"><img src="docs/banner.svg" alt="Dock-Hosting" width="100%"></p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/PHP-8.2-777BB4?logo=php&logoColor=white">
+  <img src="https://img.shields.io/badge/MySQL-8.0-4479A1?logo=mysql&logoColor=white">
+  <img src="https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white">
+  <img src="https://img.shields.io/badge/license-MIT-green">
+</p>
 
 **Dock-Hosting** is a modern Platform-as-a-Service (PaaS) that enables users to deploy PHP applications instantly with automatic subdomain provisioning and free SSL certificates.
 
@@ -31,15 +38,7 @@
 
 ##  Architecture
 
-```
-User Request → Dock-Hosting App → Docker Container (php:8.2-apache)
-                      ↓
-              nginx-proxy (Reverse Proxy)
-                      ↓
-        Auto SSL + Subdomain Routing
-                      ↓
-           https://project.dockhosting.dev
-```
+![Architecture](docs/architecture.svg)
 
 **Stack:**
 - **Backend:** PHP 8.2 (OOP, PDO)
@@ -61,8 +60,8 @@ User Request → Dock-Hosting App → Docker Container (php:8.2-apache)
 
 ```bash
 # Clone repository
-git clone https://github.com/ilyas-doughmi/Dock-Hosting.git
-cd Dock-Hosting
+git clone https://github.com/doughmi-ilyas/dockhosting-v1.git
+cd dockhosting-v1
 
 # Create environment file
 cp .env.example .env
@@ -86,24 +85,8 @@ sudo chmod -R 777 /home/deployer/users
 # Create proxy network
 docker network create proxy_network
 
-# Install nginx-proxy (reverse proxy + SSL)
-docker run -d -p 80:80 -p 443:443 \
-  --name nginx-proxy \
-  --network proxy_network \
-  -v /var/run/docker.sock:/tmp/docker.sock:ro \
-  -v /etc/nginx/certs \
-  -v /etc/nginx/vhost.d \
-  -v /usr/share/nginx/html \
-  nginxproxy/nginx-proxy
-
-# Install SSL companion
-docker run -d \
-  --name nginx-proxy-acme \
-  --network proxy_network \
-  --volumes-from nginx-proxy \
-  -v /var/run/docker.sock:/var/run/docker.sock:ro \
-  -e DEFAULT_EMAIL=your@email.com \
-  nginxproxy/acme-companion
+# Start nginx-proxy + Let's Encrypt companion
+docker compose -f docker-compose-proxy.yml up -d
 
 # Start Dock-Hosting
 docker compose up -d --build
@@ -129,11 +112,11 @@ The wildcard (`*`) enables automatic subdomains for user projects.
 # Requirements: Docker Desktop, Git
 
 # Clone and setup
-git clone https://github.com/ilyas-doughmi/Dock-Hosting.git
-cd Dock-Hosting
+git clone https://github.com/doughmi-ilyas/dockhosting-v1.git
+cd dockhosting-v1
 
 # Create .env
-echo "DB_PASSWORD=root" > .env
+cp .env.example .env
 
 # Start services
 docker compose up -d
@@ -148,7 +131,11 @@ docker compose up -d
 ##  Project Structure
 
 ```
-Dock-Hosting/
+dockhosting-v1/
+├── api/              # API endpoints
+├── cron/             # Scheduled jobs
+├── docs/             # README images
+├── proxy/            # Proxy config
 ├── Classes/          # OOP models (User, Project)
 ├── components/       # Reusable UI components
 ├── includes/         # Backend handlers (create-project, login)
@@ -157,8 +144,15 @@ Dock-Hosting/
 ├── sql/              # Database schema
 ├── .env.example      # Environment template
 ├── docker-compose.yml
+├── docker-compose-proxy.yml
 └── Dockerfile
 ```
+
+---
+
+##  Database Model
+
+![ERD](Mod%C3%A9lisation/ERD_Database_Model.png)
 
 ---
 
@@ -188,4 +182,4 @@ MIT License - Feel free to use for learning and personal projects.
 
 ---
 
-**Built with ❤️ by [Ilyas Doughmi](https://github.com/ilyas-doughmi)**
+**Built with ❤️ by [Ilyas Doughmi](https://github.com/doughmi-ilyas)**
