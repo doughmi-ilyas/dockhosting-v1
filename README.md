@@ -1,185 +1,138 @@
-<p align="center"><img src="docs/banner.svg" alt="Dock-Hosting" width="100%"></p>
-
 <p align="center">
-  <img src="https://img.shields.io/badge/PHP-8.2-777BB4?logo=php&logoColor=white">
-  <img src="https://img.shields.io/badge/MySQL-8.0-4479A1?logo=mysql&logoColor=white">
-  <img src="https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white">
-  <img src="https://img.shields.io/badge/license-MIT-green">
+  <img src="docs/banner.svg" alt="Dock-Hosting" width="100%">
 </p>
 
-**Dock-Hosting** is a modern Platform-as-a-Service (PaaS) that enables users to deploy PHP applications instantly with automatic subdomain provisioning and free SSL certificates.
+<p align="center">
+  <a href="https://www.dockhosting.dev"><img src="https://img.shields.io/badge/live-dockhosting.dev-2dd4bf?style=for-the-badge&labelColor=0a0a0a"></a>
+  <img src="https://img.shields.io/badge/PHP-8.2-2dd4bf?style=for-the-badge&logo=php&logoColor=white&labelColor=0a0a0a">
+  <img src="https://img.shields.io/badge/MySQL-8.0-2dd4bf?style=for-the-badge&logo=mysql&logoColor=white&labelColor=0a0a0a">
+  <img src="https://img.shields.io/badge/Docker-ready-2dd4bf?style=for-the-badge&logo=docker&logoColor=white&labelColor=0a0a0a">
+  <img src="https://img.shields.io/badge/license-MIT-2dd4bf?style=for-the-badge&labelColor=0a0a0a">
+</p>
 
- **Live Demo:** [https://www.dockhosting.dev](https://www.dockhosting.dev)
-
----
-
-##  Key Features
-
-### **Automatic Deployment**
-- **Framework Selection:** Choose PHP (more frameworks coming soon)
-- **Zero Configuration:** No manual setup required
-- **Instant Deployment:** Projects go live in seconds
-
-### **Smart Subdomain Management**
-- **Vercel-Style Naming:** Auto-generated unique names (e.g., `my-app-a1b2c3.dockhosting.dev`)
-- **Automatic DNS Routing:** Wildcard subdomain support via nginx-proxy
-- **Free SSL:** Let's Encrypt certificates auto-generated for all projects
-
-### **User Management**
-- **Secure Authentication:** Password hashing with bcrypt
-- **Personal Dashboard:** Real-time overview of deployments
-- **Project Isolation:** Each project runs in its own Docker container
-
-### **Built-in Code Editor**
-- **File Manager:** Browse and edit project files directly in the browser
-- **Live Updates:** Changes reflect immediately
+<p align="center">
+  <b>Dock-Hosting</b> is a self-hosted PaaS that deploys PHP apps into isolated Docker containers,<br>
+  with an automatic subdomain, a free SSL certificate and a MySQL database for every project.
+</p>
 
 ---
 
-##  Architecture
+<img src="docs/features.svg" alt="Features" width="100%">
 
-![Architecture](docs/architecture.svg)
+## Deploy flow
 
-**Stack:**
-- **Backend:** PHP 8.2 (OOP, PDO)
-- **Database:** MySQL 8.0
-- **Containers:** Docker + nginx-proxy
-- **SSL:** Let's Encrypt (acme-companion)
-- **Frontend:** TailwindCSS, Vanilla JavaScript
+<img src="docs/deploy-flow.svg" alt="Deploy flow" width="100%">
+
+You can deploy in three ways:
+
+| Source | How |
+|--------|-----|
+| **ZIP upload** | Upload your project from the dashboard |
+| **GitHub** | Connect your account with OAuth, then pick a repository and branch |
+| **CLI** | `npm install -g dockhosting-cli`, log in, and deploy from your terminal |
+
+## Architecture
+
+<img src="docs/architecture.svg" alt="Architecture" width="100%">
+
+| Service | Role |
+|---------|------|
+| `nginx-proxy` | Reverse proxy that routes each subdomain to its container |
+| `acme-companion` | Issues and renews Let's Encrypt certificates |
+| `web` | The Dock-Hosting app (PHP 8.2 + Apache). Talks to Docker through `docker.sock` |
+| `db` | MySQL 8.0 for the platform and for user databases |
+| `pma` | phpMyAdmin at `pma.dockhosting.dev` |
+| User containers | One `php:8.2-apache` container per project |
+| `cron/collect_stats.php` | Saves `docker stats` (CPU, memory, network) to the database |
+
+## Database
+
+<img src="docs/erd.svg" alt="Database schema" width="100%">
+
+The schema is in [`sql/install.sql`](sql/install.sql). MySQL loads it automatically on first start.
 
 ---
 
-##  Production Deployment
+## Production setup
 
-### Prerequisites
-- Ubuntu/Debian VPS with public IP
-- Docker & Docker Compose installed
-- Domain name with DNS access
+**You need:** an Ubuntu/Debian VPS, Docker with Docker Compose, and a domain you control.
 
-### Quick Start
-
-```bash
-# Clone repository
-git clone https://github.com/doughmi-ilyas/dockhosting-v1.git
-cd dockhosting-v1
-
-# Create environment file
-cp .env.example .env
-nano .env
-```
-
-**Edit `.env`:**
-```ini
-DB_PASSWORD=password123
-STORAGE_PATH=/home/deployer/users
-HOST_BASE_PATH=/home/deployer/users
-LETSENCRYPT_EMAIL=your@email.com
-```
-
-**Setup:**
-```bash
-# Create storage directory
-sudo mkdir -p /home/deployer/users/Projects
-sudo chmod -R 777 /home/deployer/users
-
-# Create proxy network
-docker network create proxy_network
-
-# Start nginx-proxy + Let's Encrypt companion
-docker compose -f docker-compose-proxy.yml up -d
-
-# Start Dock-Hosting
-docker compose up -d --build
-```
-
-### DNS Configuration
-
-Add these records to your domain:
+### 1. DNS
 
 | Type | Name | Value |
 |------|------|-------|
-| A | @ | `YOUR_VPS_IP` |
-| A | www | `YOUR_VPS_IP` |
-| A | * | `YOUR_VPS_IP` |
+| A | `@` | `YOUR_VPS_IP` |
+| A | `www` | `YOUR_VPS_IP` |
+| A | `*` | `YOUR_VPS_IP` |
 
-The wildcard (`*`) enables automatic subdomains for user projects.
+The wildcard record (`*`) gives every project its own subdomain.
 
----
-
-##  Local Development
+### 2. Install
 
 ```bash
-# Requirements: Docker Desktop, Git
-
-# Clone and setup
 git clone https://github.com/doughmi-ilyas/dockhosting-v1.git
 cd dockhosting-v1
 
-# Create .env
 cp .env.example .env
+nano .env            # set DB_PASSWORD, paths and LETSENCRYPT_EMAIL
 
-# Start services
-docker compose up -d
+sudo mkdir -p /home/deployer/dock-hosting-data/Projects
 
-# Access
-# Main app: http://localhost
-# Database: localhost:3306
+docker network create proxy_network
+docker compose -f docker-compose-proxy.yml up -d   # nginx-proxy + SSL
+docker compose up -d --build                       # app + MySQL + phpMyAdmin
 ```
 
----
+### 3. Stats cron (optional)
 
-##  Project Structure
+```bash
+* * * * * docker exec dock-hosting-app php /var/www/html/cron/collect_stats.php
+```
+
+### Continuous deployment
+
+[`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) connects to the VPS over SSH, pulls `main` and rebuilds the containers on every push. To turn it on, add the `VPS_HOST`, `VPS_USERNAME` and `VPS_PASSWORD` secrets to the repository.
+
+## Local development
+
+```bash
+git clone https://github.com/doughmi-ilyas/dockhosting-v1.git
+cd dockhosting-v1
+cp .env.example .env
+docker network create proxy_network
+docker compose up -d
+```
+
+The app runs at `http://localhost` and MySQL at `localhost:3306`.
+
+## Project structure
 
 ```
 dockhosting-v1/
-├── api/              # API endpoints
-├── cron/             # Scheduled jobs
-├── docs/             # README images
-├── proxy/            # Proxy config
-├── Classes/          # OOP models (User, Project)
-├── components/       # Reusable UI components
-├── includes/         # Backend handlers (create-project, login)
-├── pages/            # Frontend views (dashboard, file-manager)
-├── php/              # Database connection
-├── sql/              # Database schema
-├── .env.example      # Environment template
+├── api/          CLI deploy, file manager, GitHub repos, stats endpoints
+├── Classes/      Login, Signup, Project, Admin, DatabaseManager, GitHubManager
+├── components/   Sidebars
+├── cron/         Container stats collector
+├── docs/         README images
+├── includes/     Actions, auth, CSRF guard, middleware, logger
+├── pages/        Dashboard, project, file manager, settings, admin panel
+├── php/          Database connection
+├── proxy/        Proxy compose file
+├── sql/          Database schema
 ├── docker-compose.yml
-├── docker-compose-proxy.yml
-└── Dockerfile
+└── docker-compose-proxy.yml
 ```
 
----
+## Security
 
-##  Database Model
+- Passwords hashed with bcrypt
+- Cross-site POST requests blocked by an Origin check on every request
+- Audit log of user and admin actions
+- Each project runs in its own container
+- Maintenance mode and announcements from the admin panel
 
-![ERD](Mod%C3%A9lisation/ERD_Database_Model.png)
+## License
 
----
+MIT. Free to use for learning and personal projects.
 
-##  How It Works
-
-1. **User creates project** → Selects framework and enters name
-2. **Backend generates** → Unique container name with random suffix
-3. **Docker launches** → `php:8.2-apache` container with volume mount
-4. **nginx-proxy detects** → Auto-configures subdomain routing
-5. **Let's Encrypt** → Issues SSL certificate automatically
-6. **Live in seconds** → `https://project-abc123.dockhosting.dev` 
-
----
-
-##  Features Roadmap
-
-- [x] PHP framework support
-- [x] Automatic SSL certificates
-- [x] Subdomain routing
-- [x] File manager / Code editor
-
----
-
-##  License
-
-MIT License - Feel free to use for learning and personal projects.
-
----
-
-**Built with ❤️ by [Ilyas Doughmi](https://github.com/doughmi-ilyas)**
+<p align="center"><sub>Built by <a href="https://github.com/doughmi-ilyas">Ilyas Doughmi</a></sub></p>
