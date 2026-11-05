@@ -3,7 +3,8 @@
 </p>
 
 <p align="center">
-  <a href="https://www.dockhosting.dev"><img src="https://img.shields.io/badge/live-dockhosting.dev-2dd4bf?style=for-the-badge&labelColor=0a0a0a"></a>
+  <img src="https://img.shields.io/badge/version-V1-2dd4bf?style=for-the-badge&labelColor=0a0a0a">
+  <img src="https://img.shields.io/badge/status-archived-737373?style=for-the-badge&labelColor=0a0a0a">
   <img src="https://img.shields.io/badge/PHP-8.2-2dd4bf?style=for-the-badge&logo=php&logoColor=white&labelColor=0a0a0a">
   <img src="https://img.shields.io/badge/MySQL-8.0-2dd4bf?style=for-the-badge&logo=mysql&logoColor=white&labelColor=0a0a0a">
   <img src="https://img.shields.io/badge/Docker-ready-2dd4bf?style=for-the-badge&logo=docker&logoColor=white&labelColor=0a0a0a">
@@ -11,9 +12,15 @@
 </p>
 
 <p align="center">
-  <b>Dock-Hosting</b> is a self-hosted PaaS that deploys PHP apps into isolated Docker containers,<br>
+  <b>Dock-Hosting V1</b> is a self-hosted PaaS that deploys PHP apps into isolated Docker containers,<br>
   with an automatic subdomain, a free SSL certificate and a MySQL database for every project.
 </p>
+
+> [!NOTE]
+> **This is Dock-Hosting V1, the first version of the project. It is no longer live.**
+>
+> V1 was a learning project: I built it to learn PHP on a real project, with real users, containers and deployments.
+> Dock-Hosting now runs on a different stack that can handle more users and projects. This repository stays up as the original version.
 
 ---
 
@@ -133,6 +140,6 @@ dockhosting-v1/
 
 ## License
 
-MIT. Free to use for learning and personal projects.
+MIT. Free to use for learning and personal projects. If you're learning PHP too, feel free to read through the code.
 
 <p align="center"><sub>Built by <a href="https://github.com/doughmi-ilyas">Ilyas Doughmi</a></sub></p>
